@@ -1,0 +1,24 @@
+:root{
+  --ink:#11182a;--muted:#70778b;--plum:#f6f7fc;--panel:#fff;--paper:#fff;
+  --gold:#5b61e6;--coral:#19ada9;--mint:#e9eafd;--line:#e4e6f0;
+  --shadow:0 8px 24px rgba(52,58,105,.065);--shadow-hover:0 18px 44px rgba(69,72,139,.14);
+}
+body{background:radial-gradient(circle at 8% 0,rgba(91,97,230,.085),transparent 30rem),radial-gradient(circle at 93% 9%,rgba(25,173,169,.07),transparent 25rem),#f6f7fc;color:#11182a}
+.topbar{background:rgba(255,255,255,.9);border-color:#e5e7f0;box-shadow:0 7px 30px rgba(47,52,100,.07)}
+.brand-mark{background:linear-gradient(145deg,#652bb7,#5b61e6);box-shadow:0 7px 17px rgba(91,97,230,.27)}.brand i{color:#19a9a5}.desktop-nav{background:#f4f5fa}.desktop-nav button{color:#596074}.desktop-nav button:hover{color:#4f56d9}.avatar{background:#5b61e6}.icon-btn{background:#f0f1fb;color:#5056d8}
+.eyebrow{background:#eceefd;color:#5157d9}.hero h1 em{background:linear-gradient(90deg,#565ce4,#1caaa6);-webkit-background-clip:text;background-clip:text;color:transparent}.lead{color:#6e7588}
+.primary{background:#5b61e6;box-shadow:0 9px 22px rgba(91,97,230,.24)}.primary:hover{background:#4e54d7;box-shadow:0 13px 29px rgba(91,97,230,.31)}.secondary{color:#42495f;border-color:#dde0ec}.secondary:hover{border-color:#b8bcee;background:#f7f7ff}
+.progress-box{border-color:#e3e5f0}.fill{background:linear-gradient(90deg,#5b61e6,#19ada9)}.track{background:#e9ebf4}
+.moon{background:radial-gradient(circle at 33% 28%,#fff,#ced1fa 48%,#70d3cb 100%);box-shadow:0 30px 100px rgba(91,97,230,.2)}.book{filter:saturate(.7) hue-rotate(90deg)}
+.work-card,.game-card,.stat-card,.assistant-card,.info,.chat,.map-card,.map-card:nth-child(3n+1),.map-card:nth-child(3n){background:#fff;border-color:#e3e5ef;box-shadow:var(--shadow)}.work-card:hover,.game-card:hover,.stat-card:hover,.info:hover,.map-card:hover{border-color:#bfc3f1;box-shadow:var(--shadow-hover)}
+.tag{background:#eef0ff;color:#5157d8;border-color:#dfe1fb}.heart.saved{color:#5b61e6}.heart:hover{background:#eef0ff}.small-btn{background:#f0f1fd!important;color:#4e54cf!important}.small-btn:hover{background:#e5e7fb!important}
+.challenge{background:linear-gradient(135deg,#5b61e6,#5053bd 58%,#258eae)}.challenge .eyebrow{background:rgba(255,255,255,.16);color:#fff}.badge,.game-icon{background:#eef0ff;color:#545ae0}
+.filter{border-color:#e0e2ec;color:#596074}.filter.active{background:#5b61e6;border-color:#5b61e6;color:#fff}.map-card:hover{border-color:#aeb3ed}.map-num{color:#575de0}.level{background:#eaf7f6;color:#168d8a}
+.work-sections button{border-color:#e2e4ef;color:#2e3450}.work-sections button:hover{border-color:#b9bdf0;background:#fafaff}.character-visual{background:linear-gradient(145deg,#f0f1ff,#e8f7f6);border-color:#dfe2f2}
+.option:hover{background:#f3f4ff;border-color:#7b80e8}.option.correct{background:#e0f5ec;border-color:#59ab84;color:#195d41}.option.wrong{background:#fde8e8;border-color:#df7373;color:#8a2929}.result-line{background:#f3f4fc;border-color:#e2e4ef;color:#2f3652}
+.user{background:#5b61e6}.bot{background:#f1f2f8}.chat-form input:focus,.search-input:focus{outline-color:rgba(91,97,230,.16);border-color:#8d91ea}.chat-form button{background:#5b61e6}.quick:hover{color:#5056d8}
+.big-avatar{background:linear-gradient(145deg,#5b61e6,#3e9fae)}.stat-card strong{color:#5359dc}.notice{background:#f0f1fd;color:#444a9c;border-color:#dde0f6}.canonical-note{background:#eef7f7;color:#28666f;border-color:#d5eaea}.timeline{border-color:#5b61e6}.timeline div:before{background:#5b61e6}.relationship:hover{border-color:#b9bdf0;background:#fafaff}
+.modal-overlay{background:rgba(27,30,64,.42)}.modal{border-color:#e0e2ed;box-shadow:0 28px 90px rgba(34,37,82,.19)}#toast{background:#252a52}
+.auth-shell,.auth-screen{background:radial-gradient(circle at 7% 12%,rgba(91,97,230,.12),transparent 28rem),radial-gradient(circle at 92% 90%,rgba(25,173,169,.08),transparent 25rem),#f6f7fc}.auth-card{border-color:#e1e3ed;box-shadow:0 24px 80px rgba(49,53,105,.13)}.auth-intro,.auth-aside{background:linear-gradient(150deg,#5b31a7,#5961e5 65%,#24a6aa)}.auth-form input:focus{outline-color:rgba(91,97,230,.16);border-color:#8f93ea}.auth-switch button{color:#5359dd}
+.bottom-nav .active{color:#555be0}.bottom-nav{border-color:#e1e3ed}.link,.back{color:#5359dd}
+@media(max-width:760px){.topbar{background:rgba(255,255,255,.94)}.bottom-nav{background:rgba(255,255,255,.97)}}

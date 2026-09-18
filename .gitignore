@@ -1,0 +1,8 @@
+# Generated delivery archives and local scratch directories
+github-site.zip
+github-site/
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+*.log
