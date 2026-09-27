@@ -22,3 +22,9 @@
 body.assistant-route #shyrakAssistantRoot .shyrak-character,body.assistant-route #shyrakAssistantRoot .shyrak-speech{display:none}body.assistant-route #shyrakAssistantRoot .shyrak-panel{right:0}
 body[data-route="home"] #shyrakAssistantRoot .shyrak-character,body[data-route="home"] #shyrakAssistantRoot .shyrak-speech,body[data-route="library"] #shyrakAssistantRoot .shyrak-character,body[data-route="library"] #shyrakAssistantRoot .shyrak-speech,body[data-route="work"] #shyrakAssistantRoot .shyrak-character,body[data-route="work"] #shyrakAssistantRoot .shyrak-speech,body[data-route="games"] #shyrakAssistantRoot .shyrak-character,body[data-route="games"] #shyrakAssistantRoot .shyrak-speech{display:none}
 @media(max-width:760px){body.assistant-route .assistant-layout .chat{order:-1;min-height:calc(100dvh - 190px)}}
+/* Gameplay is quiet by logic; the manual helper remains available. */
+body.shyrak-gameplay #shyrakAssistantRoot .shyrak-character{display:block!important;width:52px;height:62px}
+body.shyrak-gameplay .shyrak-assistant{right:8px;bottom:8px}
+body.shyrak-gameplay .shyrak-stage{animation:none!important}
+body.shyrak-gameplay .shyrak-panel{position:fixed;left:auto;right:8px;bottom:76px;width:min(360px,calc(100vw - 16px));height:min(400px,52dvh)}
+body.shyrak-gameplay .shyrak-context{display:none}

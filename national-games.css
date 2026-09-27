@@ -36,8 +36,8 @@
 .ng-tug-team span:after{background:linear-gradient(90deg,#d09b70,#784a32);box-shadow:0 3px 4px rgba(60,35,22,.18)}
 
 @media(max-width:620px){
-  body.ng-game-active .shyrak-speech{display:none!important}
-  body.ng-game-active .shyrak-character{display:none!important}
+  
+  
 }
 
 .ng-tabs{position:sticky;top:98px;z-index:12;display:flex;gap:6px;width:max-content;max-width:100%;margin:22px auto 34px;padding:5px;border:1px solid #d9d4c9;border-radius:14px;background:rgba(250,247,239,.92);backdrop-filter:blur(14px);box-shadow:0 9px 28px rgba(48,62,54,.08)}
@@ -48,3 +48,27 @@
 .ng-literary-game{cursor:pointer;text-align:left;color:inherit}.ng-literary-game:focus-visible{outline:3px solid rgba(46,117,101,.34);outline-offset:4px}.ng-literary-game:active{transform:translateY(-1px) scale(.992)}.ng-literary-game .ng-play{display:inline-flex;align-items:center;gap:7px;color:#286f60;font-weight:800}.ng-picker-head{max-width:760px;margin:38px 0 28px}.ng-picker-head h1{margin:8px 0 10px;font-size:clamp(38px,6vw,66px);letter-spacing:-.05em}.ng-picker-head p{color:#63736c}.ng-work-picker{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.ng-work-choice{display:grid;grid-template-columns:82px minmax(0,1fr) auto;align-items:center;gap:14px;min-height:104px;padding:10px;border:1px solid #ddd6c9;border-radius:18px;background:#fffdf8;color:#26352f;text-align:left;box-shadow:0 8px 24px rgba(48,59,53,.06);transition:.2s}.ng-work-choice:hover{transform:translateY(-3px);border-color:#78a195;box-shadow:0 14px 30px rgba(48,59,53,.11)}.ng-work-choice:focus-visible{outline:3px solid rgba(46,117,101,.3);outline-offset:2px}.ng-work-choice>img,.ng-work-choice>span{display:flex;width:82px;height:82px;flex-direction:column;justify-content:flex-end;overflow:hidden;border-radius:12px;object-fit:cover;background:#e8e1d3}.ng-work-choice>span{padding:8px}.ng-work-choice>span small{font-size:7px;text-transform:uppercase}.ng-work-choice>span b{font-size:12px}.ng-work-choice div b,.ng-work-choice div small{display:block}.ng-work-choice div b{font-size:16px}.ng-work-choice div small{margin-top:5px;color:#6c7772;font-size:11px}.ng-work-choice>i{padding-right:8px;color:#347769;font-style:normal;font-size:20px}@media(max-width:900px){.ng-work-picker{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:620px){.ng-work-picker{grid-template-columns:1fr}.ng-work-choice{grid-template-columns:70px minmax(0,1fr) auto}.ng-work-choice>img,.ng-work-choice>span{width:70px;height:70px}}
 @media(max-width:900px){.ng-literary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:620px){.ng-tabs{top:74px;width:100%;overflow:auto;justify-content:flex-start}.ng-tabs button{white-space:nowrap}.ng-category>header{display:block}.ng-category>header p{text-align:left;margin-top:7px}.ng-literary-grid{grid-template-columns:1fr}}
+/* Kokpar keeps its arena mounted while questions change. */
+.ng-race-modes{padding:clamp(24px,5vw,64px);border:1px solid #ddd6c9;border-radius:24px;background:#fffdf8;max-width:960px;margin:auto}
+.ng-race-modes h1{font-size:clamp(38px,6vw,64px);margin:12px 0}.ng-race-modes h2{font-size:24px;margin:0 0 28px}
+.ng-race-mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.ng-race-mode-grid button{padding:28px;text-align:left;border:1px solid #b9cbc4;border-radius:18px;background:#edf3ef;color:#234e43;transition:transform .2s}.ng-race-mode-grid button:last-child{background:#f5ede3;border-color:#dbc5ab;color:#7a4732}.ng-race-mode-grid button:hover{transform:translateY(-3px)}.ng-race-mode-grid b,.ng-race-mode-grid span{display:block}.ng-race-mode-grid b{font-size:25px;margin-bottom:10px}
+.ng-race-tools{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:8px 0;font-size:13px}.ng-race-tools button{padding:8px 12px}
+.ng-race-arena{position:relative;aspect-ratio:1672/941;width:100%;max-width:1000px;margin:auto;overflow:hidden;border-radius:18px;background:#93bbbe}
+.ng-race-label{position:absolute;top:42%;font-weight:800;color:#48301d;background:#f0d9ac;padding:5px 8px;font-size:clamp(10px,1.4vw,18px)}.ng-race-label.start{left:3%}.ng-race-label.finish{right:3%}
+.ng-race-runner{position:absolute;left:9%;top:57%;width:18%;height:24%;transition:left .85s cubic-bezier(.42,0,.25,1)}.ng-race-runner.red{top:70%}.ng-race-runner .ng-racing-rider{position:absolute;left:0;top:0;width:65%;height:40%;animation:none;filter:none;transform:scale(.8);transform-origin:left bottom}.ng-race-runner.moving{animation:ngRaceStride .22s ease-in-out 4}.ng-race-status{font-size:13px;padding:10px 0;color:#254e42}
+#ngRaceQuestion .ng-literary-card{position:static;width:100%;max-width:none;padding:18px;margin:0;box-shadow:none;border:1px solid #ded8ca;background:#fffdf8}#ngRaceQuestion h2{font-size:clamp(16px,2vw,22px)}#ngRaceQuestion .ng-answers button{min-height:44px;overflow-wrap:anywhere}#ngRaceQuestion .correct{background:#d5eddf;border-color:#388163;color:#183e2e}#ngRaceQuestion .wrong{background:#f6dfd8;border-color:#a85842;color:#622b1e}.ng-race-feedback{font-size:14px;margin:10px 0 0}
+.ng-race-mode-grid button:focus-visible,.ng-race-tools button:focus-visible{outline:3px solid #34776a;outline-offset:3px}.ng-theme-kokpar .ng-confetti{display:none}
+@keyframes ngRaceStride{50%{transform:translateY(-2px) rotate(-.5deg)}}
+@media(min-width:900px){.ng-race-arena{max-width:min(100%,calc((100dvh - 330px)*1.777))}}
+@media(max-width:620px){.ng-race-mode-grid{grid-template-columns:1fr}.ng-race-mode-grid button{padding:22px}.ng-race-arena{border-radius:12px}.ng-race-runner .ng-racing-rider{transform:scale(.55)}#ngRaceQuestion .ng-answers{grid-template-columns:1fr}.ng-race-tools{flex-wrap:wrap}.ng-gamebar{flex-wrap:wrap;gap:8px}.ng-gamebar .ng-live-stats{flex-wrap:wrap}}
+@media(prefers-reduced-motion:reduce){.ng-race-runner{transition:none!important;animation:none!important}}
+/* Supplied Kokpar illustrations: preserve the complete composition. */
+.ng-kokpar .kokpar-cover{height:auto!important;aspect-ratio:1;min-height:0;background:transparent}.kokpar-cover img{display:block;width:100%;height:100%;object-fit:contain;object-position:center}
+.ng-race-field{display:block;width:100%;height:100%;object-fit:contain;pointer-events:none}
+.ng-race-runner{top:auto;bottom:28%;width:21%;height:auto;aspect-ratio:1.16;z-index:1}.ng-race-runner.red{top:auto;bottom:14%;z-index:2}
+.ng-race-runner>img{display:block;width:100%;height:100%;object-fit:contain;pointer-events:none}
+@media(max-width:620px){.ng-race-runner{width:24%;bottom:26%}.ng-race-runner.red{bottom:10%}}
+.kokpar-cover:after{content:none}
+.ng-kokpar .kokpar-cover{align-self:center;width:100%}
+.ng-asyk .asyk-cover{height:auto!important;aspect-ratio:1;min-height:0;background:transparent;align-self:center;width:100%}.asyk-cover img{display:block;width:100%;height:100%;object-fit:contain;object-position:center}.asyk-cover:after{content:none}
+.ng-card .ng-image-cover{height:auto;aspect-ratio:1;min-height:0;background:transparent;align-self:center;width:100%}.ng-image-cover img{display:block;width:100%;height:100%;object-fit:contain;object-position:center}.ng-image-cover:after{content:none}.ng-start .ng-image-cover{min-height:0;align-self:center;aspect-ratio:1}

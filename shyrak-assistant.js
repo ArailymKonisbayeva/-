@@ -9,6 +9,7 @@
   const storageKey=()=>`adebiet-shyrak::${currentUserKey()}`;
   const initialState={status:'idle',isOpen:false,messages:[{role:'bot',text:'Сәлем! Мен Шырақпын — әдеби саяхаттағы жолсерігің. Қай бөлімді бірге зерттейміз?'}],activeHint:'',lastInteraction:0,seenHints:[]};
   function load(){try{return {...initialState,...JSON.parse(localStorage.getItem(storageKey())||'{}')}}catch{return {...initialState}}}
+  let gameplay=false;
   const state=load();let statusTimer=null,hintTimer=null,lastContextKey='';
   function save(){localStorage.setItem(storageKey(),JSON.stringify({...state,status:'idle',activeHint:''}))}
   function works(){return window.VERIFIED_LITERARY_DATA||{}}
@@ -71,6 +72,7 @@
     if(kind==='help')return {text:'Мен ағымдағы бет пен шығарманы түсінемін: автор, жанр, кейіпкерлер, сюжет, тақырыптар және байланыстар туралы тексерілген дерекпен көмектесемін.'};
     if(kind==='map')return {text:'Картадан өңірді таңда. Ашылған панельден сол өңірге қатысты авторлар мен шығармаларды зерттей аласың.'};
     if(kind==='library')return {text:'«Шығармалар» бөлімінде 13 туынды бар. Карточканы ашып, шолу, кейіпкерлер, сюжет және тақырыптарды кезекпен қара.'};
+    if(kind==='guide'&&location.hash.endsWith('/kokpar'))return {text:'Дұрыс жауап сені 17% алға жылжытады, ал 4,5 секундтан жылдам жауап — 25%. Жарыста қарсылас әр жауапта 7%, қате жауапта тағы 23% жүреді. Мәреге бірінші жеткен жеңеді. Жаттығуда қарсылас жоқ.'};
     if(kind==='guide')return {text:'Ойын карточкасынан тапсырманы таңда. Әр жауаптан кейін түсіндірме беріледі, ал нәтиже профиліңде сақталады.'};
     if(kind==='progress')return {text:'Прогресс тек нақты әрекеттерден есептеледі: зерттелген шығармалар, аяқталған ойындар және картадан қаралған өңірлер.'};
     if(!work)return {text:`Қазір сен «${ctx.section}» бөліміндесің. Нақты әдеби жауап алу үшін шығарма атауын сұрақта жаз немесе шығарма бетіне өт.`};
@@ -84,12 +86,13 @@
     return {text:`«${work.title}» туралы бұл сұраққа қазіргі тексерілген базада нақты жауап жоқ. Автор, жанр, кейіпкерлер, сюжет немесе негізгі идея туралы сұрап көр.`};
   }
   function sendQuestion(raw,kind=''){const text=raw.trim();if(!text||state.status==='thinking')return;state.activeHint='';state.messages.push({role:'user',text});state.lastInteraction=Date.now();setStatus('thinking');save();render();const messages=root.querySelector('.shyrak-messages');if(messages)messages.insertAdjacentHTML('beforeend','<div class="shyrak-message bot"><span class="shyrak-loading" aria-label="Шырақ жауап ойлап жатыр"><i></i><i></i><i></i></span> Шырақ жауап ойлап жатыр...</div>');scrollMessages();setTimeout(()=>{const response=answer(findWork(text),kind,text);state.messages.push({role:'bot',...response});state.messages=state.messages.slice(-30);setStatus('talking',Math.min(5000,1800+response.text.length*12));save();render()},520)}
-  function say(text,duration=2600){if(!text)return;clearTimeout(hintTimer);state.activeHint=String(text);state.lastInteraction=Date.now();setStatus('talking',duration);render();hintTimer=setTimeout(()=>{if(state.activeHint===text)dismissHint()},duration)}
+  function say(text,duration=2600){if(!text||gameplay)return;clearTimeout(hintTimer);state.activeHint=String(text);state.lastInteraction=Date.now();setStatus('talking',duration);render();hintTimer=setTimeout(()=>{if(state.activeHint===text)dismissHint()},duration)}
   function hintFor(ctx){if(ctx.work)return `${ctx.work.title} әлеміне қош келдің! Қаласаң, кейіпкерлері мен сюжетін бірге зерттейік.`;const hints={home:'Сәлем! Саяхатты картадан немесе шығармалар кітапханасынан бастай аласың.',map:'Өңірді таңдасаң, сол жермен байланысты қаламгерлерді көрсетемін.',library:'Қай шығарманы таңдарыңды білмесең, менен жанры немесе тақырыбы бойынша сұра.',games:'Ойын алдында шығарманың шолу бөлімін қарап шықсаң, жауап беру жеңілдейді.',assistant:'Мен осы беттегі көмекшінің де контекстін сақтаймын.',achievements:'Белгілер тек нақты оқу әрекеттеріңнен ашылады.',profile:'Мұнда сенің нақты зерттеу қадамдарың сақталады.'};return hints[ctx.route]||''}
-  function onContextChange(){const ctx=routeContext(),key=`${ctx.route}:${ctx.workId||''}:${ctx.section}`;if(key===lastContextKey)return;lastContextKey=key;const seen=new Set(state.seenHints||[]),hint=hintFor(ctx);if(hint&&!seen.has(key)&&Date.now()-state.lastInteraction>12000){clearTimeout(hintTimer);hintTimer=setTimeout(()=>{state.activeHint=hint;state.seenHints=[...seen,key].slice(-30);setStatus('greeting',5200);save();render();setTimeout(()=>{if(state.activeHint===hint)dismissHint()},5200)},900)}if(state.isOpen)render()}
+  function onContextChange(){if(gameplay)return;const ctx=routeContext(),key=`${ctx.route}:${ctx.workId||''}:${ctx.section}`;if(key===lastContextKey)return;lastContextKey=key;const seen=new Set(state.seenHints||[]),hint=hintFor(ctx);if(hint&&!seen.has(key)&&Date.now()-state.lastInteraction>12000){clearTimeout(hintTimer);hintTimer=setTimeout(()=>{if(gameplay)return;state.activeHint=hint;state.seenHints=[...seen,key].slice(-30);setStatus('greeting',5200);save();render();setTimeout(()=>{if(state.activeHint===hint)dismissHint()},5200)},900)}if(state.isOpen)render()}
   document.addEventListener('keydown',event=>{if(event.key==='Escape'&&state.isOpen)closePanel()});
   document.addEventListener('click',event=>{if(event.target.closest('.ds-tabs button'))setTimeout(onContextChange,0)});
   window.addEventListener('hashchange',()=>setTimeout(onContextChange,90));
-  window.ShyrakAssistant={open:openPanel,close:closePanel,send:sendQuestion,say,getState:()=>({...state,context:routeContext()})};
+  function setGameplay(active){gameplay=!!active;document.body.classList.toggle('shyrak-gameplay',gameplay);clearTimeout(hintTimer);clearTimeout(statusTimer);state.activeHint='';state.isOpen=false;state.status='idle';render()}
+  window.ShyrakAssistant={setGameplay,open:openPanel,close:closePanel,send:sendQuestion,say,getState:()=>({...state,context:routeContext()})};
   render();setTimeout(onContextChange,180);
 })();

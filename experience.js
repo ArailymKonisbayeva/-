@@ -49,7 +49,7 @@
     const isSaved=typeof saved!=='undefined'&&saved.includes(id);
     return `<button class="heart ${isSaved?'saved':''}" onclick="toggleFav('${id}')" aria-label="${isSaved?'Таңдаулылардан алып тастау':'Таңдаулыларға қосу'}">${isSaved?'♥':'♡'}</button>`;
   }
-  const workCovers={alpan:'assets/works/covers/alpan.png',balalyk:'assets/works/covers/balalyk.png',kan:'assets/works/covers/kan.png',qyzyl:'assets/works/covers/qyzyl.png'};
+  const workCovers={alpan:'assets/works/covers/alpan.png',balalyk:'assets/works/covers/balalyk.png',kan:'assets/works/covers/kan.png',qyzyl:'assets/works/covers/qyzyl.png','akbilek':'assets/works/covers/akbilek.png','ertostik':'assets/works/covers/ertostik.png','kar-kyzy':'assets/works/covers/kar-kyzy.png','kokserak':'assets/works/covers/kokserak.png','kozy':'assets/works/covers/kozy.png','zhabaiy':'assets/works/covers/zhabaiy.png','zhusan':'assets/works/covers/zhusan.png'};
   function icon(name){return window.LiteraryIcons?.render?.(name,'ds-inline-icon')||''}
   function workVisual(work,kind='card'){
     const cover=workCovers[work.id];
