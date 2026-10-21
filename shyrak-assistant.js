@@ -16,10 +16,10 @@
   function workById(id){return works()[id]||null}
   function routeContext(){
     const hash=location.hash.slice(1)||'home',parts=hash.split('/'),route=parts[0];let workId=null;
-    if(route==='work')workId=parts[1];
+    if(route==='work'||route==='read')workId=parts[1];
     if(route==='games'&&parts[1])workId=parts[1];
     if(route==='assistant'&&parts[1])workId=parts[1];
-    if(!workId&&['work','games','assistant'].includes(route))workId=window.currentWorkId||null;
+    if(!workId&&['work','read','games','assistant'].includes(route))workId=window.currentWorkId||null;
     const labels={home:'Басты бет',map:'Әдеби саяхат',library:'Шығармалар',games:'Ойындар',assistant:'AI көмекші',achievements:'Жетістіктер',profile:'Профиль',work:'Шығарма'};
     const activeTab=document.querySelector('.ds-tabs button.active')?.textContent?.trim();
     return {route,section:activeTab||labels[route]||'Бөлім',work:workById(workId),workId};
@@ -66,17 +66,27 @@
   function closePanel(){state.isOpen=false;setStatus('idle');save();render();root.querySelector('.shyrak-character')?.focus()}
   function dismissHint(){state.activeHint='';setStatus('idle');render()}
   function scrollMessages(){const box=root.querySelector('.shyrak-messages');if(box)box.scrollTop=box.scrollHeight}
-  function findWork(text){const query=text.toLocaleLowerCase('kk-KZ');return Object.values(works()).find(work=>query.includes(work.title.toLocaleLowerCase('kk-KZ')))||routeContext().work||null}
+  function findWork(text){const q=text.toLocaleLowerCase('kk-KZ'),matches=Object.values(works()).filter(w=>q.includes(w.title.toLocaleLowerCase('kk-KZ'))),current=routeContext().work;return matches.find(w=>q.includes(w.author.toLocaleLowerCase('kk-KZ')))||matches.find(w=>w.id===current?.id)||(matches.length===1?matches[0]:matches.length?null:current)}
   function answer(work,kind,text){
     const q=text.toLocaleLowerCase('kk-KZ'),ctx=routeContext(),content=work?.content||{},source=work?.sources?.find(item=>/^https:\/\//.test(item.url||''));
     if(kind==='help')return {text:'Мен ағымдағы бет пен шығарманы түсінемін: автор, жанр, кейіпкерлер, сюжет, тақырыптар және байланыстар туралы тексерілген дерекпен көмектесемін.'};
     if(kind==='map')return {text:'Картадан өңірді таңда. Ашылған панельден сол өңірге қатысты авторлар мен шығармаларды зерттей аласың.'};
-    if(kind==='library')return {text:'«Шығармалар» бөлімінде 13 туынды бар. Карточканы ашып, шолу, кейіпкерлер, сюжет және тақырыптарды кезекпен қара.'};
+    if(kind==='library')return {text:`«Шығармалар» бөлімінде ${Object.keys(works()).length} туынды бар. Карточканы ашып, шолу, кейіпкерлер, сюжет және тақырыптарды кезекпен қара.`};
     if(kind==='guide'&&location.hash.endsWith('/kokpar'))return {text:'Дұрыс жауап сені 17% алға жылжытады, ал 4,5 секундтан жылдам жауап — 25%. Жарыста қарсылас әр жауапта 7%, қате жауапта тағы 23% жүреді. Мәреге бірінші жеткен жеңеді. Жаттығуда қарсылас жоқ.'};
     if(kind==='guide')return {text:'Ойын карточкасынан тапсырманы таңда. Әр жауаптан кейін түсіндірме беріледі, ал нәтиже профиліңде сақталады.'};
     if(kind==='progress')return {text:'Прогресс тек нақты әрекеттерден есептеледі: зерттелген шығармалар, аяқталған ойындар және картадан қаралған өңірлер.'};
     if(!work)return {text:`Қазір сен «${ctx.section}» бөліміндесің. Нақты әдеби жауап алу үшін шығарма атауын сұрақта жаз немесе шығарма бетіне өт.`};
     const factSource=source?.name||'';
+    const word=(content.vocabulary||[]).find(v=>q.includes(v.term.toLocaleLowerCase('kk')));
+    if(word)return {text:`${word.term}: ${word.definition} ${word.context||''}`,source:word.source?.name||factSource};
+    if(/(сөздік|сөз мағына)/.test(q))return {text:(content.vocabulary||[]).map(v=>`${v.term} — ${v.definition}`).join('\n')||'Бұл шығарма сөздігі әлі толықтырылуда.',source:factSource};
+    const person=(content.characters||[]).find(c=>q.includes(c.name.toLocaleLowerCase('kk')));
+    if(/(көмек|қате|подсказ)/.test(q)&&location.hash.startsWith('#games/')&&window.verifiedGameHint?.())return {text:window.verifiedGameHint(),source:factSource};
+    if(person&&!/(сюжет|мазмұн|оқиға|автор|жанр|идея|тақырып|салыстыр)/.test(q))return {text:`${person.name} — ${person.role}. ${person.description} ${person.action||''} ${Object.values(person.study||{}).join(' ')}`,source:factSource};
+    if(/(композиция|құрылым|финал|шешімнің)/.test(q)&&content.readingGuide)return {text:content.readingGuide.composition+' '+content.readingGuide.endingAnalysis,source:factSource};
+    if(/(салыстыр|ұқсас|басқа шығарма)/.test(q))return {text:(content.relatedWorks||[]).map(r=>`${workById(r.workId)?.title}: ${r.reason}`).join('\n')||'Бұл салыстыруға жеткілікті дерек жоқ.',source:factSource};
+    if(/(көркем|тәсіл|символ|пейзаж)/.test(q))return {text:'Әдеби талдау: '+((content.artistry||[]).map(a=>`${a.name}: ${a.description}`).join('\n')||'Бұл бөлім әлі тексерілуде.'),source:factSource};
+    if(/(көмек|қате|түсіндір|подсказ)/.test(q)&&location.hash.startsWith('#games/')){const game=work.games?.find(g=>g.id===location.hash.split('/')[2]);return {text:game?`${game.instruction} ${work.questScope||''} Негізгі тартыс: ${content.conflict}`:'Нақты тапсырманы ашып, сұрағыңды қой.',source:factSource}}
     if(kind==='author'||/(автор|жазған|кімнің|жанр)/.test(q))return {text:`«${work.title}» — ${work.authorType==='folklore'?'қазақ халық мұрасы':`${work.author} шығармасы`}. Жанры: ${work.genre||'нақтылануда'}.`,source:factSource};
     if(kind==='characters'||/(кейіпкер|герой|персонаж)/.test(q))return content.characters?.length?{text:`Тексерілген кейіпкерлер: ${content.characters.map(item=>item.name).join(', ')}.`,source:factSource}:{text:'Бұл шығарма бойынша тексерілген кейіпкерлер тізімі жеткіліксіз. Ойдан шығарылған есім қоспаймын.'};
     if(kind==='plot'||/(сюжет|оқиға|не туралы|мазмұн)/.test(q))return content.plotSummary?{text:content.plotSummary,source:factSource}:{text:'Бұл шығарма бойынша тексерілген сюжет мазмұны жеткіліксіз.'};

@@ -13,10 +13,13 @@
   const globalThemes=unique(all.flatMap(w=>(w.content?.themes||[]).map(t=>typeof t==='string'?t:t.name)));
   const authors=unique(all.map(w=>w.author));
   const genres=unique(all.map(w=>w.genre));
+  const shuffle=items=>{const copy=[...items];for(let i=copy.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[copy[i],copy[j]]=[copy[j],copy[i]]}return copy};
+  const prepare=game=>{if(game.type!=='quiz')return game;return {...game,questions:game.questions.map((q,i)=>{const correct=q.options[q.answer],options=shuffle(q.options);return {...q,id:q.id||game.id+'-'+i,options,answer:options.indexOf(correct)}})}};
 
   function orderedPlot(work){
     const events=(work.content?.plotEvents||[]).map((event,index)=>({id:event.id||`event-${index}`,text:event.text||event.description||event.label})).filter(x=>x.text);
     if(events.length>=3)return events.slice(0,5);
+    if(work.studyQuestions)return [];
     const parts=unique([...sentences(work.content?.plotSummary||work.intro),work.content?.conflict,work.content?.mainIdea]);
     return parts.slice(0,5).map((text,index)=>({id:`summary-${index}`,text}));
   }
@@ -28,6 +31,15 @@
     ));
   }
   function quizQuestions(work){
+    if(work.studyQuestions){
+      const c=work.content,additional=[
+        question('Осы шығармадағы негізгі тартыс қайсы?',c.conflict,all.map(w=>w.content?.conflict),c.conflict,'Тартысты тану'),
+        question('Осы оқу модуліндегі оқиға ортасын таңда.',c.setting,all.map(w=>w.content?.setting),c.setting,'Кеңістік'),
+        question('Қай тұжырым шығарманың негізгі идеясына сай?',c.mainIdea,all.map(w=>w.content?.mainIdea),'Мәтінге негізделген әдеби түсіндіру: '+c.mainIdea,'Идея')
+      ];
+      for(const v of (c.vocabulary||[]).slice(0,3))additional.push(question(`«${v.term}» сөзінің осы контекстегі мағынасы қандай?`,v.definition,all.flatMap(w=>(w.content?.vocabulary||[]).map(x=>x.definition)),v.context+' '+v.definition,'Сөздік'));
+      return [...work.studyQuestions,...characterQuestions(work),...additional].map((q,i)=>({...q,id:q.id||`${work.id}-question-${i}`}));
+    }
     const c=work.content||{},themes=(c.themes||[]).map(t=>typeof t==='string'?t:t.name),rows=[];
     rows.push(question(`«${work.title}» шығармасының авторын таңда.`,work.author,authors,`${work.title} — ${work.author} шығармасы.`,'Автор'));
     rows.push(question(`«${work.title}» шығармасының жанрын таңда.`,work.genre,genres,`Тексерілген жанрлық белгі: ${work.genre}.`,'Жанр'));
@@ -48,6 +60,7 @@
     }));
   }
   function buildStoryQuest(work){
+    if(work.studyQuestions)return analysisQuest(work);
     const c=work.content||{},characters=c.characters||[],events=orderedPlot(work);
     const hero=characters[0]?.name||'Басты кейіпкер';
     const ally=characters[1]?.name||'жақын адам';
@@ -87,8 +100,8 @@
   }
   function makeGames(work){
     const c=work.content||{},plot=orderedPlot(work),chars=c.characters||[],themes=(c.themes||[]).map(t=>typeof t==='string'?t:t.name);
-    const pairs=chars.slice(0,5).map(ch=>({left:ch.name,right:ch.role||ch.description}));
-    const builderItems=unique([c.setting,c.conflict,c.mainIdea,...themes]).slice(0,5).map((text,index)=>({id:`anchor-${index}`,text}));
+    const pairs=chars.slice(0,5).map(ch=>({left:ch.name,right:chars.filter(c=>c.role===ch.role).length>1?ch.description:ch.role||ch.description}));
+    const builderItems=work.studyQuestions?plot:unique([c.setting,c.conflict,c.mainIdea,...themes]).slice(0,5).map((text,index)=>({id:`anchor-${index}`,text}));
     return [
       {id:'story-builder',mechanic:'builder',title:'Сюжетті жина',icon:'book',type:'order',difficulty:'Орташа',learningObjective:'Шығарманың оқиға және мағына тіректерін бір желіге жинау',instruction:'Тексерілген әдеби тіректерді кіріспеден негізгі идеяға қарай орналастыр.',prompt:'Әдеби желіні жина',items:builderItems.length>=3?builderItems:plot,successExplanation:'Желі шығарма кеңістігі, тартысы және негізгі идеясы бойынша жиналды.',retryExplanation:'Алдымен оқиға ортасын, одан кейін тартыс пен идеяны орналастыр.'},
       {id:'plot-order',mechanic:'timeline',title:'Сюжетті ретте',icon:'branch',type:'order',difficulty:'Орташа',learningObjective:'Оқиғалардың себеп-салдар ретін түсіну',instruction:'Оқиға үзінділерін шығармадағы ретімен орналастыр.',prompt:'Оқиғаларды дұрыс ретке қой',items:plot,successExplanation:'Оқиғалар тексерілген мазмұндағы ретпен орналасты.',retryExplanation:'Оқиғаның басталуын, дамуын және шешімін қайта салыстыр.'},
@@ -98,7 +111,17 @@
       {id:'story-rewrite',mechanic:'branch',title:'Сюжетті квест',icon:'branch',type:'branch',difficulty:'Шығармашылық',learningObjective:'Кейіпкер шешімінің мінезге, қарым-қатынасқа, сюжетке және негізгі идеяға әсерін талдау',instruction:'Кейіпкер атынан шешім қабылда. Әр таңдау оқиғаның бағыты мен мағынасын өзгертеді.',storyQuest:buildStoryQuest(work)}
     ].filter(game=>game.type==='order'?game.items?.length>=3:game.type==='match'?game.pairs?.length>=3:game.type==='branch'?game.storyQuest?.startNode:game.questions?.length>=3);
   }
-  all.forEach(work=>{work.games=makeGames(work)});
+  function analysisQuest(work){
+    const rows=work.studyQuestions,nodes={};
+    rows.forEach((q,i)=>{nodes['scene-'+i]={label:'Мәтінге сүйенген талдау',character:'Оқырман',title:q.prompt,situation:(i===0?work.questScope+' ':'')+(work.questScenes?.[i]||work.content.plotSummary),choices:shuffle(q.options.map((text,j)=>({id:'answer-'+j,text,correct:j===q.answer,hint:'Түсіндіруді таңдап, оны мәтіндегі дерекпен салыстыр.',consequence:{result:(j===q.answer?'Негізді жауап. ':'Жауапты қайта қара. ')+q.explanation,emotion:'Бұл — кейіпкердің ойдан шығарылған сөзі емес, оқырманның талдауы.',relations:work.content.conflict,direction:work.questScope,meaning:j===q.answer?'Келесі сұраққа өт.':'Дұрыс негіз: '+q.options[q.answer]},next:i===rows.length-1?'analysis-end':'scene-'+(i+1)})))}});
+    Object.values(nodes).forEach((node,i)=>{node.label=i===0?'Кіріспе және әдеби жағдай':i===rows.length-1?'Түйінді шешім':'Оқиғаны зерттеу';node.dialogue=[{speaker:'Шырақ',text:work.questScenes?.[i]||work.questScope},{speaker:'Оқырманның міндеті',text:rows[i].prompt}];node.dialogueNotice='Оқу диалогы редакцияда жасалған; авторлық цитата емес.';node.character=(work.content.characters||[]).filter(c=>node.situation.includes(c.name)).map(c=>c.name).join(', ')||work.content.characters[0]?.name||'Оқырман'});
+    return {mode:'analysis',sceneCount:rows.length,startNode:'scene-0',hero:work.content.characters[0]?.name,theme:work.content.mainIdea,original:work.content.plotSummary,nodes,endings:{'analysis-end':{id:'analysis-end',type:'Әдеби талдау аяқталды',title:'Оқу модулінің қорытындысы',summary:work.questScope,heroEffect:work.content.characters[0]?.description,othersEffect:work.content.conflict,plotEffect:'Түпнұсқа оқиғалары өзгертілген жоқ.',ideaEffect:work.content.readingGuide?.endingAnalysis||work.content.mainIdea,comparison:'Таңдаулар оқиға финалын емес, жауаптың негізділігін бағалайды.'}}};
+  }
+  all.forEach(work=>{
+    const authored=work.games||[];let memo;
+    Object.defineProperty(work,'games',{enumerable:true,get(){if(!memo){const generated=makeGames(work).filter(g=>!(work.studyQuestions&&g.id==='story-builder'&&!orderedPlot(work).length));memo=[...generated,...authored.filter(g=>!generated.some(x=>x.id===g.id))].map(prepare);if(work.studyQuestions)for(const g of memo){if(g.type==='order'){g.instruction=work.orderScope||work.content.plotScope||'Оқиғаларды түпнұсқадағы ретімен орналастыр.';g.prompt=work.orderScope||'Эпизод оқиғаларын ретте';g.successExplanation='Осы модульдегі рет дұрыс.';g.retryExplanation='Модульдің шекарасы мен оқиғалардың байланысын қайта қара.'}if(g.id==='story-rewrite'){g.instruction='Мәтінге сүйенген талдау сұрақтарына жауап бер. Әр таңдаудан кейін түсіндірмені оқы.';g.learningObjective=work.questScope;g.difficulty='Талдау'}}}return memo}});
+  });
   window.VERIFIED_LITERARY_DATA=Object.fromEntries(all.map(work=>[work.id,work]));
-  window.LITERARY_GAME_DATA=Object.fromEntries(all.map(work=>[work.id,work.games]));
+  window.LITERARY_GAME_DATA=Object.fromEntries(all.map(work=>[work.id,null]));
+  all.forEach(work=>Object.defineProperty(window.LITERARY_GAME_DATA,work.id,{enumerable:true,get:()=>work.games}));
 })();

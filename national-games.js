@@ -14,6 +14,7 @@
   const esc=v=>String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
   const userKey=()=>{try{return typeof currentUser==='function'?(currentUser()?.email||'guest'):'guest'}catch{return 'guest'}};
   const progressKey=()=>`adebiet-national-games::${userKey()}`;
+  Object.assign(covers,window.LITERARY_WORK_COVERS||{});
   const readProgress=()=>{try{return JSON.parse(localStorage.getItem(progressKey())||'{}')}catch{return {}}};
   const writeProgress=value=>localStorage.setItem(progressKey(),JSON.stringify(value));
   const reduceMotion=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -23,7 +24,7 @@
   function say(text){window.ShyrakAssistant?.say?.(text)}
   function syncNav(){document.querySelectorAll('[data-go]').forEach(b=>b.classList.toggle('active',b.dataset.go==='games'))}
   function richWorks(){return allWorks().filter(w=>w.content&&(w.content.characters?.length||w.content.themes?.length||w.content.plotEvents?.length))}
-  function shuffle(rows){return [...rows].sort(()=>Math.random()-.5)}
+  function shuffle(rows){const copy=[...rows];for(let i=copy.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[copy[i],copy[j]]=[copy[j],copy[i]]}return copy}
   function unique(rows){return [...new Set(rows.filter(Boolean))]}
   function distract(correct,pool,count=3){return shuffle(unique(pool).filter(v=>v!==correct)).slice(0,count)}
   function question(prompt,correct,pool,explanation,type='knowledge'){
@@ -35,18 +36,20 @@
     const rows=[];
     sourceWorks.forEach(w=>{
       const c=w.content||{},chars=c.characters||[],themes=(c.themes||[]).map(t=>typeof t==='string'?t:t.name);
-      chars.forEach(ch=>rows.push(question(`«${w.title}» шығармасындағы «${ch.role||'кейіпкер'}» кім?`,ch.name,globalCharacters,`${ch.name}: ${ch.description||ch.role||'тексерілген кейіпкер'}.`,'character')));
+      if(w.studyQuestions)rows.push(...w.studyQuestions.map((q,i)=>({...q,id:w.id+'-study-'+i,workId:w.id,prompt:`«${w.title}» (${w.author}): ${q.prompt}`})));
+      chars.filter(ch=>ch.description&&chars.filter(x=>x.description===ch.description).length===1).forEach(ch=>rows.push(question(`«${w.title}» (${w.author}): ${ch.description} Бұл кім?`,ch.name,globalCharacters,`${ch.name}: ${ch.description}`,'character')));
       if(chars.length>1)chars.filter(ch=>ch.description).slice(0,3).forEach(ch=>rows.push(question(`Сипаттаманы таны: ${ch.description}`,ch.name,globalCharacters,`Бұл — ${ch.name}.`,'character')));
       themes.slice(0,3).forEach(theme=>rows.push(question(`«${w.title}» шығармасына тән тақырыпты таңда.`,theme,globalThemes,`Тексерілген тақырып: ${theme}.`,'theme')));
       (c.relationships||[]).slice(0,3).forEach(rel=>rows.push(question(`${rel.from}: «${rel.type}» байланысы қай кейіпкерге қатысты?`,rel.to,globalCharacters,`${rel.from} — ${rel.type} — ${rel.to}.`,'relationship')));
-      (c.plotEvents||[]).slice(0,3).forEach(event=>rows.push(question(`«${w.title}» оқиғасын тап.`,event.text,allWorks().map(x=>x.content?.plotSummary).filter(Boolean),event.text,'event')));
+      (c.plotEvents||[]).slice(0,3).forEach(event=>{const text=event.text||event.description||event.label;if(text)rows.push(question(`«${w.title}»: «${event.title||event.label||'Оқиға'}» кезеңіне сәйкес дерек қайсы?`,text,allWorks().map(x=>x.content?.plotSummary).filter(Boolean),text,'event'))});
       rows.push(question(`«${w.title}» шығармасының авторын таңда.`,w.author,allWorks().map(x=>x.author),`${w.title} — ${w.author} шығармасы.`,'author'));
       rows.push(question(`«${w.title}» жанрын таңда.`,w.genre,allWorks().map(x=>x.genre),`Жанры: ${w.genre}.`,'genre'));
     });
     const fallback=sourceWorks[0];
     if(rows.length<3&&fallback)rows.push(question(`«${fallback.title}» авторы кім?`,fallback.author,allWorks().map(x=>x.author),`${fallback.title} — ${fallback.author} шығармасы.`));
     const count={Жеңіл:4,Орташа:5,Қиын:7}[difficulty]||5;
-    return shuffle(rows).slice(0,Math.min(count,rows.length));
+    const distinct=rows.filter((q,i,a)=>q.options?.length>=2&&q.answer>=0&&a.findIndex(x=>x.prompt===q.prompt)===i);
+    return shuffle(distinct).slice(0,Math.min(count,distinct.length));
   }
   function gameArt(id,large=false){
     if(id==='langi'||id==='arkan')return `<div class="ng-art ng-image-cover ${large?'large':''}"><img src="assets/games/${id}/${id}-cover.png" alt="${META[id].title}" loading="lazy" width="1254" height="1254"></div>`;
@@ -156,7 +159,7 @@
   function selectWork(id){renderHub(id)}
   function launch(work,id){location.hash=`games/${work}/${id}`}
   function openStoryBuilder(id){const work=byId(id)||byId('kokserak'),game=(work?.games||[]).find(g=>g.type==='order')||(byId('kokserak')?.games||[]).find(g=>g.type==='order');if(game)location.hash=`games/${work?.games?.includes(game)?work.id:'kokserak'}/${game.id}`}
-  function openStoryRewrite(id){const work=byId(id)||byId('kokserak'),target=typeof window.safeWork==='function'&&window.safeWork(work.id)?work.id:'kokserak';window.currentWorkId=target;cleanup();root().innerHTML=`<section class="ng-game"><button class="back" onclick="NationalGames.renderHub('${target}')">← Ойындар орталығына</button><header class="ng-work-head"><div><span class="ng-kicker">Балама сюжет</span><h1>Сюжетті <em>өзгерту</em></h1><p>Түпнұсқа оқиға сақталады. Сен шешімдер арқылы ықтимал балама тармақтарды зерттейсің.</p></div></header><div id="workOutput"></div></section>`;if(typeof window.startAlternativeStory==='function')window.startAlternativeStory(target);syncNav();window.scrollTo(0,0)}
+  function openStoryRewrite(id){const work=byId(id);const game=work?.games?.find(g=>g.type==='branch');if(game){cleanup();window.openGame(work.id,game.id)}else chooseLiteraryGame('branch')}
   function renameMapLabels(){document.querySelectorAll('[data-go="map"]').forEach(el=>{if(el.textContent.includes('Әдеби Қазақстан'))el.textContent=el.textContent.replace('Әдеби Қазақстан','Әдеби саяхат')});if(location.hash==='#map')document.querySelectorAll('.lk-intro h1').forEach(h=>{if(h.textContent!=='Әдеби саяхат')h.textContent='Әдеби саяхат'})}
   window.addEventListener('hashchange',cleanup);
   window.addEventListener('hashchange',()=>setTimeout(renameMapLabels,120));new MutationObserver(renameMapLabels).observe(document.querySelector('#app'),{childList:true,subtree:true});setTimeout(renameMapLabels,160);
