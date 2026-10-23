@@ -2,10 +2,10 @@
 (()=>{
   'use strict';
   const E=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const $=s=>document.querySelector(s), manifest={ertostik:'data/reader/ertostik.json?v=lexicon-4',alpan:'data/reader/ulpan.json?v=excerpt-1'}, cache=new Map();
+  const $=s=>document.querySelector(s), manifest={ertostik:'data/reader/ertostik.json?v=lexicon-4',alpan:'data/reader/ulpan.json?v=excerpt-1','kar-kyzy':'data/reader/kar-kyzy.json?v=excerpt-1'}, cache=new Map();
   const key=k=>`adebiet-reader-v1::${typeof currentUser==='function'?currentUser()?.email||'guest':'guest'}::${k}`;
-  const read=(k,f)=>{try{return JSON.parse(localStorage.getItem(key(k)))??f}catch{return f}};
-  const write=(k,v)=>{try{localStorage.setItem(key(k),JSON.stringify(v));return true}catch{announce('Сақтау мүмкін болмады. Браузер жадына рұқсатты тексеріңіз.');return false}};
+  const read=(k,f)=>{try{return JSON.parse(window.UserStorage.getItem(key(k)))??f}catch{return f}};
+  const write=(k,v)=>{try{window.UserStorage.setItem(key(k),JSON.stringify(v));return true}catch{announce('Сақтау мүмкін болмады. Браузер жадына рұқсатты тексеріңіз.');return false}};
   const safe=url=>{try{const u=new URL(url);return u.protocol==='https:'?E(u.href):'#'}catch{return '#'}};
   const link=s=>s?(s.url?`<a href="${safe(s.url)}" target="_blank" rel="noopener noreferrer">${E(s.title||s.name||'Дереккөзден ашу')} ↗</a>`:`<span>${E(s.title||s.name||'Дереккөз')}</span>`):'';
   function sourcePanel(id){

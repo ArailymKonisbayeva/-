@@ -15,8 +15,8 @@
   const userKey=()=>{try{return typeof currentUser==='function'?(currentUser()?.email||'guest'):'guest'}catch{return 'guest'}};
   const progressKey=()=>`adebiet-national-games::${userKey()}`;
   Object.assign(covers,window.LITERARY_WORK_COVERS||{});
-  const readProgress=()=>{try{return JSON.parse(localStorage.getItem(progressKey())||'{}')}catch{return {}}};
-  const writeProgress=value=>localStorage.setItem(progressKey(),JSON.stringify(value));
+  const readProgress=()=>{try{return JSON.parse(window.UserStorage.getItem(progressKey())||'{}')}catch{return {}}};
+  const writeProgress=value=>window.UserStorage.setItem(progressKey(),JSON.stringify(value));
   const reduceMotion=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
   let session=null,raf=0,timers=[];
   const later=(fn,ms)=>{const id=setTimeout(fn,ms);timers.push(id);return id};

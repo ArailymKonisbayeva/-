@@ -8,10 +8,11 @@
   const currentUserKey=()=>{try{return typeof currentUser==='function'?(currentUser()?.email||'guest'):'guest'}catch{return 'guest'}};
   const storageKey=()=>`adebiet-shyrak::${currentUserKey()}`;
   const initialState={status:'idle',isOpen:false,messages:[{role:'bot',text:'Сәлем! Мен Шырақпын — әдеби саяхаттағы жолсерігің. Қай бөлімді бірге зерттейміз?'}],activeHint:'',lastInteraction:0,seenHints:[]};
-  function load(){try{return {...initialState,...JSON.parse(localStorage.getItem(storageKey())||'{}')}}catch{return {...initialState}}}
+  function load(){try{return {...initialState,...JSON.parse(window.UserStorage.getItem(storageKey())||'{}')}}catch{return {...initialState}}}
   let gameplay=false;
   const state=load();let statusTimer=null,hintTimer=null,lastContextKey='';
-  function save(){localStorage.setItem(storageKey(),JSON.stringify({...state,status:'idle',activeHint:''}))}
+  window.addEventListener('account-ready',()=>{Object.assign(state,load());lastContextKey='';render();});
+  function save(){window.UserStorage.setItem(storageKey(),JSON.stringify({...state,status:'idle',activeHint:''}))}
   function works(){return window.VERIFIED_LITERARY_DATA||{}}
   function workById(id){return works()[id]||null}
   function routeContext(){

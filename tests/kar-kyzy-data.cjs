@@ -1,0 +1,11 @@
+const fs=require('node:fs'),assert=require('node:assert/strict'),crypto=require('node:crypto');
+const data=JSON.parse(fs.readFileSync('data/reader/kar-kyzy.json','utf8'));
+const paragraphs=data.chapters.flatMap(c=>c.paragraphs);
+assert.equal(data.workId,'kar-kyzy');assert.equal(data.status,'excerpt');
+assert.equal(paragraphs.length,data.source.sourceParagraphCount);
+assert.equal(new Set(paragraphs.map(p=>p.id)).size,paragraphs.length);
+assert.equal(crypto.createHash('sha256').update(paragraphs.map(p=>p.text).join('\n\n')).digest('hex'),data.source.textSha256);
+if(process.argv[2])assert.deepEqual(paragraphs.map(p=>p.text),fs.readFileSync(process.argv[2],'utf8').replace(/^\uFEFF/,'').trim().split(/\r?\n\s*\r?\n/u).map(s=>s.trim()));
+assert.ok(paragraphs[0].text.includes('Алтай өңіріне'));
+assert.ok(paragraphs.at(-1).text.includes('Сенің де сорпалығың бар'));
+console.log(`PASS: Kar kyzy, ${paragraphs.length} exact source paragraphs, ${data.chapters.length} navigation sections`);

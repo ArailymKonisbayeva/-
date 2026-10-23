@@ -10,8 +10,8 @@
   const esc=value=>String(value??'').replace(/[&<>'"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]));
   const scopedKey=key=>{const user=typeof currentUser==='function'?currentUser():null;return `${key}::${user?.email||'guest'}`};
   const store={
-    read(key,fallback){try{const value=JSON.parse(localStorage.getItem(scopedKey(key)));return value??fallback}catch{return fallback}},
-    write(key,value){localStorage.setItem(scopedKey(key),JSON.stringify(value));return value}
+    read(key,fallback){try{const value=JSON.parse(window.UserStorage.getItem(scopedKey(key)));return value??fallback}catch{return fallback}},
+    write(key,value){window.UserStorage.setItem(scopedKey(key),JSON.stringify(value));return value}
   };
   const completedWorks=()=>store.read('adebiet-completed-works',[]).filter(id=>byId(id));
   const gameResults=()=>store.read('adebiet-game-results',[]);
@@ -69,7 +69,7 @@
   window.toggleFav=function(id){
     if(typeof saved==='undefined')return;
     saved=saved.includes(id)?saved.filter(item=>item!==id):[...saved,id];
-    localStorage.setItem('adebiet-favs',JSON.stringify(saved));
+    window.UserStorage.setItem('adebiet-favs',JSON.stringify(saved));
     toast(saved.includes(id)?'Таңдаулыларға қосылды':'Таңдаулылардан алынды');
     const hash=location.hash.slice(1);
     if(hash.startsWith('work/'))renderWork(id);else if(hash==='library')renderLibrary();else renderHome();
@@ -158,7 +158,7 @@
   window.openWork=function(id){activeWorkTab='overview';if(location.hash!==`#work/${id}`)location.hash=`work/${id}`;renderWork(id)};
   window.markWorkComplete=function(id){
     const set=new Set(completedWorks());set.add(id);store.write('adebiet-completed-works',[...set]);
-    if(typeof completed!=='undefined'){completed=set.size;localStorage.setItem('adebiet-completed',String(completed))}
+    if(typeof completed!=='undefined'){completed=set.size;window.UserStorage.setItem('adebiet-completed',String(completed))}
     logActivity('work',`«${byId(id)?.title}» зерттелді`);toast('Шығарма зерттелгендер тізіміне қосылды');renderWork(id);
   };
   window.completeWork=function(){const id=location.hash.split('/')[1]||window.currentWorkId;if(id)window.markWorkComplete(id)};
@@ -317,7 +317,7 @@
       {icon:'⌖',title:'Өңір зерттеушісі',description:'Картадан 5 өңірді зерттеу',unlocked:regions.length>=5},
       {icon:'▥',title:'Әдеби топтама',description:'3 шығарманы зерттеу',unlocked:done.length>=3},
       {icon:'◎',title:'Қазақстанды таны',description:'Картадағы 20 өңірдің бәрін зерттеу',unlocked:regions.length>=20}
-    ];
+    ].map((row,i)=>({...row,unlocked:row.unlocked||(window.cloudAchievementIds||[]).includes(['first-work','first-game','high-score','five-regions','three-works','twenty-regions'][i])}));
   }
   function renderAchievements(){
     const rows=achievementData(),unlocked=rows.filter(row=>row.unlocked).length;
@@ -328,7 +328,7 @@
 
   function renderProfile(){
     const user=typeof currentUser==='function'?currentUser():null,done=completedWorks(),results=gameResults(),regions=visitedRegions(),badges=achievementData().filter(row=>row.unlocked),rows=activities(),name=user?.name||'Оқырман';
-    root().innerHTML=`<section class="profile-top"><div class="big-avatar">${esc(name.charAt(0).toUpperCase())}</div><div><span class="ds-kicker">Жеке оқу кеңістігі</span><h1>${esc(name)}</h1><p class="muted">${user?.email?esc(user.email):'Қонақ режимі'}</p></div></section><div class="ds-profile-grid"><article class="stat-card"><span class="muted">Зерттелген</span><strong>${done.length}</strong><span class="muted">${list().length} шығарманың ішінен</span></article><article class="stat-card"><span class="muted">Ойын сессиясы</span><strong>${results.length}</strong><span class="muted">нақты нәтиже</span></article><article class="stat-card"><span class="muted">Өңір</span><strong>${regions.length}</strong><span class="muted">20 өңірдің ішінен</span></article><article class="stat-card"><span class="muted">Жетістік</span><strong>${badges.length}</strong><span class="muted">ашылған белгі</span></article></div><section class="section"><div class="section-head"><div><h2>Соңғы әрекеттер</h2><p>Тек осы құрылғыда шынымен орындалған қадамдар</p></div></div><div class="ds-card">${rows.length?`<div class="ds-activity-list">${rows.slice(0,8).map(row=>`<div class="ds-activity"><span>${esc(row.label)}</span><span>${new Date(row.date).toLocaleDateString('kk-KZ')}</span></div>`).join('')}</div>`:'<div class="ds-empty">Әзірге тіркелген оқу әрекеті жоқ.</div>'}</div></section><section class="section"><div class="section-head"><div><h2>Таңдаулылар</h2><p>${typeof saved!=='undefined'?saved.length:0} шығарма сақталған</p></div></div><div class="cards">${typeof saved!=='undefined'&&saved.length?saved.map(byId).filter(Boolean).map(makeWorkCard).join(''):'<div class="ds-empty">Таңдаулы шығарма әлі жоқ.</div>'}</div></section>${user?'<div class="actions"><button class="secondary" onclick="editProfile()">Профильді өңдеу</button><button class="secondary" onclick="logoutUser()">Шығу</button></div>':''}`;
+    root().innerHTML=`<section class="profile-top"><div class="big-avatar">${esc(name.charAt(0).toUpperCase())}</div><div><span class="ds-kicker">Жеке оқу кеңістігі</span><h1>${esc(name)}</h1><p class="muted">${user?.email?esc(user.email):'Қонақ режимі'}</p></div></section><div class="ds-profile-grid"><article class="stat-card"><span class="muted">Зерттелген</span><strong>${done.length}</strong><span class="muted">${list().length} шығарманың ішінен</span></article><article class="stat-card"><span class="muted">Ойын сессиясы</span><strong>${results.length}</strong><span class="muted">нақты нәтиже</span></article><article class="stat-card"><span class="muted">Өңір</span><strong>${regions.length}</strong><span class="muted">20 өңірдің ішінен</span></article><article class="stat-card"><span class="muted">Жетістік</span><strong>${badges.length}</strong><span class="muted">ашылған белгі</span></article></div><section class="section"><div class="section-head"><div><h2>Соңғы әрекеттер</h2><p>Аккаунтта сақталған оқу әрекеттері</p></div></div><div class="ds-card">${rows.length?`<div class="ds-activity-list">${rows.slice(0,8).map(row=>`<div class="ds-activity"><span>${esc(row.label)}</span><span>${new Date(row.date).toLocaleDateString('kk-KZ')}</span></div>`).join('')}</div>`:'<div class="ds-empty">Әзірге тіркелген оқу әрекеті жоқ.</div>'}</div></section><section class="section"><div class="section-head"><div><h2>Таңдаулылар</h2><p>${typeof saved!=='undefined'?saved.length:0} шығарма сақталған</p></div></div><div class="cards">${typeof saved!=='undefined'&&saved.length?saved.map(byId).filter(Boolean).map(makeWorkCard).join(''):'<div class="ds-empty">Таңдаулы шығарма әлі жоқ.</div>'}</div></section>${user?'<div class="actions"><button class="secondary" onclick="editProfile()">Профильді өңдеу</button><button class="secondary" onclick="logoutUser()">Шығу</button></div>':''}`;
     syncNav('profile');window.scrollTo(0,0);
   }
   window.profile=renderProfile;window.profileNew=renderProfile;
@@ -350,6 +350,7 @@
     const user=typeof currentUser==='function'?currentUser():{loggedIn:true};
     if(!user||!user.loggedIn){if(typeof showAuth==='function')showAuth('login');return}
     const hash=location.hash.slice(1)||'home',parts=hash.split('/'),route=parts[0];
+    if(route==='admin')return window.AdminPanel?.render();
     document.body.dataset.route=route;
     document.body.classList.toggle('assistant-route',route==='assistant');
     if(route==='map'||route==='author')return syncNav('map');

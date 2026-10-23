@@ -1,0 +1,23 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const ui={authEscape:s=>String(s),document:{querySelector:()=>({})},MutationObserver:class{observe(){}},addEventListener(){}};ui.window=ui;vm.runInNewContext(fs.readFileSync('admin.js','utf8'),ui);
+assert.equal(ui.AdminPanel.csvCell('=1+1'),'"\'=1+1"');assert.equal(ui.AdminPanel.csvCell('a"b'),'"a""b"');assert.equal(ui.AdminPanel.csvCell('\t@SUM(1)'),'"\'\t@SUM(1)"');
+for(const f of fs.readdirSync('.').filter(f=>f.endsWith('.js')))new vm.Script(fs.readFileSync(f,'utf8'),{filename:f});
+const raw=new Map([['adebiet-user',JSON.stringify({email:'old@example.test',password:'plaintext',loggedIn:true})]]),events=[];
+const c={window:null,localStorage:{getItem:k=>raw.get(k)??null,setItem:(k,v)=>raw.set(k,String(v)),removeItem:k=>raw.delete(k)},addEventListener(){},setInterval(){},setTimeout(){},clearTimeout(){},CustomEvent:class{constructor(type,init){this.type=type;this.detail=init.detail}},dispatchEvent:e=>events.push(e),saved:[],scores:[],xp:0,completed:0,gamesDone:0};c.window=c;
+vm.createContext(c);vm.runInContext(fs.readFileSync('account-store.js','utf8'),c);
+assert.equal(raw.has('adebiet-user'),false);assert.ok(![...raw.values()].join('').includes('plaintext'));assert.equal(c.UserStorage.getItem('adebiet-xp'),null);
+const db=new Map();let conflict=false,active='a';
+const client={from:table=>({select:()=>({eq:async(_,id)=>({data:table==='user_achievements'?[]:[...(db.get(id)||new Map())].map(([key,r])=>({key,...r})),error:null})})}),rpc:async(_,args)=>{if(conflict)return{error:{code:'40001'}};const rows=db.get(active)||new Map();const r={value:args.p_value,revision:args.p_revision+1};rows.set(args.p_key,r);db.set(active,rows);return{data:r.revision}}};
+(async()=>{
+ await c.AccountStore.start(client,{id:'a',email:'a@test'});
+ c.UserStorage.setItem('adebiet-xp','30');c.UserStorage.setItem('adebiet-game-results::a@test','[{"percent":90}]');c.UserStorage.setItem('adebiet-reader-v1::a@test::progress:kar-kyzy','{"chapter":3}');
+ await c.AccountStore.flush();assert.equal(db.get('a').get('adebiet-xp').value,30);assert.ok(db.get('a').has('adebiet-game-results'));assert.ok(db.get('a').has('adebiet-reader-v1::progress:kar-kyzy'));
+ c.AccountStore.stop();active='b';await c.AccountStore.start(client,{id:'b',email:'b@test'});assert.equal(c.UserStorage.getItem('adebiet-xp'),null);assert.equal(c.xp,0);
+ active='a';await c.AccountStore.start(client,{id:'a',email:'a@test'});assert.equal(c.UserStorage.getItem('adebiet-xp'),'30');assert.equal(c.xp,30);
+ conflict=true;c.UserStorage.setItem('adebiet-xp','40');await c.AccountStore.flush();assert.equal(db.get('a').get('adebiet-xp').value,30);assert.ok(events.at(-1).detail.error);assert.ok(JSON.parse(raw.get('adebiet-cloud-cache::a')).dirty['adebiet-xp']);
+ c.AccountStore.stop();await c.AccountStore.start(client,{id:'a',email:'a@test'});assert.equal(c.UserStorage.getItem('adebiet-xp'),'40');assert.equal(c.escapeAccountText('<img>'),'&lt;img&gt;');
+ const sql=fs.readFileSync('supabase/migrations/202610220001_accounts.sql','utf8');for(const name of ['profiles','user_progress','user_achievements'])assert.ok(sql.includes(`alter table public.${name} enable row level security`));
+ assert.ok(sql.includes('grant update(name,nickname)'));assert.ok(!sql.includes('grant insert'));
+ const auth=fs.readFileSync('auth.js','utf8');for(const method of ['signUp','signInWithPassword','signOut','resetPasswordForEmail','updateUser','getUser'])assert.ok(auth.includes('.'+method+'('));assert.ok(!auth.includes('localStorage.setItem'));
+ console.log('PASS: JS syntax, UUID isolation, cloud restore, reader keys, conflict cache, plaintext cleanup, auth wiring and static policy guards. SQL execution/email not covered.');
+})().catch(e=>{console.error(e);process.exitCode=1});

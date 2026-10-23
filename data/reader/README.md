@@ -1,5 +1,14 @@
 # Reader data
 
+## Қар қызы — user-provided excerpt
+
+`kar-kyzy.json` preserves all 541 supplied paragraphs, divided into 14 numbered
+navigation sections (not author chapters). It is marked `excerpt`; no continuation
+was invented. The shared reader provides search, saved position and word lookup
+in the local Apertium dictionary. No new curated definitions were added; unknown
+words retain the reader's explicit missing-entry message. The source hash and
+`tests/kar-kyzy-data.cjs` verify paragraph order and text integrity.
+
 The existing app routes `#read/<canonical-work-id>` through `experience.js` to
 `LiteraryReader.open` in `reader.js`. `reader.css` is scoped to reader UI.
 Work detail and catalogue enhancements preserve their original controls.

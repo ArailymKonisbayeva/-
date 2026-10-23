@@ -9,7 +9,7 @@ let links=0;
 for(const [id,row] of Object.entries(registry)){
  assert.equal(row.checkedAt,'2026-10-21');
  for(const s of row.sources){assert.equal(new URL(s.url).protocol,'https:');assert.ok(s.title&&s.note&&s.format&&s.verification);links++;}
- if(!id.match(/^(ertostik|alpan)$/)){
+ if(!row.mode.startsWith('local-')){
   await c.window.LiteraryReader.open(id);
   assert.ok(app.innerHTML.includes(db[id].title),id);
   assert.ok(!app.innerHTML.includes('Мәтін әзірге қолжетімсіз'),id);

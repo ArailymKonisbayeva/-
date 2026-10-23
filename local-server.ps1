@@ -8,10 +8,12 @@ while ($true) {
     $stream = $client.GetStream(); $stream.ReadTimeout = 3000; $reader = [IO.StreamReader]::new($stream)
     $request = $reader.ReadLine()
     while ($true) { $line = $reader.ReadLine(); if ($null -eq $line -or $line -eq '') { break } }
-    $url = ($request -split ' ')[1].Split('?')[0].TrimStart('/')
+    $url = [Uri]::UnescapeDataString(($request -split ' ')[1].Split('?')[0]).Replace('\','/').TrimStart('/')
     if (!$url) { $url = 'index.html' }
+    if ($url -eq 'admin' -or $url -eq 'admin/') { $url = 'admin/index.html' }
+    if ($url -match '(^|/)(\.|supabase/|scripts/)' -or $url -match '\.env') { $url = '__not_public__' }
     $target = Join-Path $PSScriptRoot $url
-    if ((Test-Path -LiteralPath $target -PathType Leaf) -and ((Resolve-Path -LiteralPath $target).Path.StartsWith($PSScriptRoot))) {
+    if ((Test-Path -LiteralPath $target -PathType Leaf) -and ((Resolve-Path -LiteralPath $target).Path.StartsWith($PSScriptRoot + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase))) {
       $body = [IO.File]::ReadAllBytes($target); $ext = [IO.Path]::GetExtension($target).ToLower()
       $contentType = if ($types.ContainsKey($ext)) {$types[$ext]} else {'application/octet-stream'}
       $head = "HTTP/1.1 200 OK`r`nContent-Type: $contentType`r`nContent-Length: $($body.Length)`r`nConnection: close`r`n`r`n"
