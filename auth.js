@@ -5,7 +5,7 @@ const authEscape=window.escapeAccountText;
 function showAuth(){
  document.querySelector('.topbar').style.display='none';
  document.querySelector('.bottom-nav').style.display='none';
- document.querySelector('#app').innerHTML=`<section class="auth-shell"><div class="auth-card"><aside class="auth-intro"><img class="auth-logo" src="assets/brand/adebi-sayahat-logo.png" alt="Әдеби саяхат"><h1>ӘДЕБИ<br>САЯХАТ</h1><p>Әдеби саяхатыңызды бірден бастаңыз.</p></aside><section class="auth-form"><h2>Тіркелу / Кіру</h2><form id="accountForm"><label>Аты-жөні<input name="name" maxlength="100" minlength="2" autocomplete="name" required></label><label>Никнейм<input name="nickname" maxlength="50" required></label><label>Email<input name="email" type="email" maxlength="254" autocomplete="email" required></label><label>Құпиясөз<input name="password" type="password" minlength="6" autocomplete="new-password" required></label><button class="primary" type="submit">Саяхатты бастау →</button></form></section></div></section>`;
+ document.querySelector('#app').innerHTML=`<section class="auth-shell"><div class="auth-card"><aside class="auth-intro"><img class="auth-logo" src="assets/brand/adebi-sayahat-logo.png" alt="Әдеби саяхат"><h1>ӘДЕБИ<br>САЯХАТ</h1><p>Әдеби саяхатыңызды бірден бастаңыз.</p></aside><section class="auth-form"><h2>Тіркелу / Кіру</h2><form id="accountForm"><label>Аты-жөні<input name="name" maxlength="100" minlength="2" autocomplete="name" required></label><label>Никнейм<input name="nickname" maxlength="50" required></label><label>Email<input name="email" type="email" maxlength="254" autocomplete="email" required></label><label>Құпиясөз<input name="password" type="password" minlength="6" autocomplete="new-password" required></label><button class="primary" type="submit">Саяхатты бастау →</button></form><div class="auth-divider"><span>немесе</span></div><button class="auth-guest" type="button" onclick="continueAsGuest()">Тіркелусіз байқап көру <span aria-hidden="true">→</span></button><p class="auth-guest-note">Карта, шығармалар мен ойындар — бірден қолжетімді.</p></section></div></section>`;
  document.querySelector('#accountForm').onsubmit=submitAccount;
 }
 function submitAccount(event){
@@ -17,10 +17,18 @@ function submitAccount(event){
  event.currentTarget.reset();
  AccountStore.stop();
  authenticatedUser={id:crypto.randomUUID(),name,nickname,email,createdAt:new Date().toISOString(),loggedIn:true,isAdmin:false};
+ enterSite();
+}
+function enterSite(){
  window.dispatchEvent(new Event('account-ready'));
  document.querySelector('.topbar').style.display='flex';document.querySelector('.bottom-nav').style.display='flex';
  history.replaceState(null,'',location.pathname+location.search+'#home');
  window.dispatchEvent(new HashChangeEvent('hashchange'));
+}
+function continueAsGuest(){
+ AccountStore.stop();
+ authenticatedUser={id:crypto.randomUUID(),name:'Қонақ',nickname:'guest',email:'',loggedIn:true,isGuest:true,isAdmin:false};
+ enterSite();
 }
 window.logoutUser=()=>{authenticatedUser=null;AccountStore.stop();location.reload()};
 window.editProfile=()=>{
