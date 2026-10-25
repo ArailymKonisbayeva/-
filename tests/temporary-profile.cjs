@@ -1,0 +1,15 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const elements=new Map();const element=k=>{if(!elements.has(k))elements.set(k,{style:{}});return elements.get(k)};
+const context={console,Map,Event,crypto:require('node:crypto').webcrypto,FormData:class{constructor(form){return new Map(Object.entries(form))}},HashChangeEvent:Event,document:{querySelector:element},location:{pathname:'/index.html',search:'',reload(){}},history:{replaceState(){}},addEventListener(){},dispatchEvent(){}};
+context.window=context;vm.createContext(context);
+for(const file of ['account-store.js','auth.js'])vm.runInContext(fs.readFileSync(file,'utf8'),context);
+vm.runInContext("showAuth();submitAccount({preventDefault(){},currentTarget:{name:'Оқырман',nickname:'reader',email:'reader@example.com',password:'sample123',reset(){}}})",context);
+assert.equal(vm.runInContext('currentUser().email',context),'reader@example.com');
+assert.equal(vm.runInContext("'password' in currentUser()",context),false);
+assert.equal(vm.runInContext('currentUser().name',context),'Оқырман');
+assert.equal(vm.runInContext('currentUser().isAdmin',context),false);
+context.UserStorage.setItem('adebiet-xp',20);assert.equal(context.UserStorage.getItem('adebiet-xp'),'20');
+context.AccountStore.stop();assert.equal(context.UserStorage.getItem('adebiet-xp'),null);
+const html=fs.readFileSync('index.html','utf8');assert(!/src="(?:supabase-config|admin|reader-count)\.js/.test(html));
+for(const file of ['auth.js','account-store.js'])assert(!/fetch\(|localStorage|sessionStorage|createClient|\.rpc\(/.test(fs.readFileSync(file,'utf8')));
+console.log('PASS: immediate temporary profile, no admin rights, memory-only progress, reset, no database scripts or persistent storage');
